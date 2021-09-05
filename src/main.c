@@ -10,6 +10,7 @@
 
 #define ENGINE_INCLUDES
 #include "model.h"
+#include "shader.h"
 
 GLFWwindow *window;
 
@@ -18,6 +19,9 @@ void deinit();
 
 int main() {
     init();
+
+    shader_t shader;
+    load_shader(&shader, "shaders/vertex.glsl", "shaders/fragment.glsl");
 
     model_t object;
     load_model(&object, "assets/bulb.obj");
@@ -43,14 +47,47 @@ int main() {
             last_second = current_time;
         }
 
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
         // Render
-        // ...
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        mat4x4 model, view, projection;
+        mat4x4_identity(model);
+        mat4x4_look_at(view, (vec3){0, 0, 10}, (vec3){0, 2, 0}, (vec3){0, 1, 0});
+        mat4x4_perspective(projection, 45.0f, (float)width / (float)height, 0.1f, 100.0f);
+
+        mat4x4 normal, temp;
+        mat4x4_transpose(temp, model);
+        mat4x4_invert(normal, temp);
+
+        glUseProgram(shader.program);
+
+        GLint model_loc = glGetUniformLocation(shader.program, "model");
+        glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
+
+        GLint view_loc = glGetUniformLocation(shader.program, "view");
+        glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float *)view);
+
+        GLint projection_loc = glGetUniformLocation(shader.program, "projection");
+        glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float *)projection);
+
+        GLint normal_loc = glGetUniformLocation(shader.program, "normal");
+        glUniformMatrix4fv(normal_loc, 1, GL_FALSE, (float *)normal);
+
+        GLint color_loc = glGetUniformLocation(shader.program, "color");
+        glUniform3f(color_loc, 1.0f, 0.0f, 1.0f);
+
+        draw_model(&object);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     free_model(&object);
+    glDeleteProgram(shader.program);
+
     deinit();
     return EXIT_SUCCESS;
 }
@@ -92,6 +129,8 @@ void init() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
 void deinit() {
