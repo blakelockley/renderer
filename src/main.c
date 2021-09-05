@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "glfw.h"
 #include "linmath.h"
 
 #define STB_IMAGE_IMPLEMENTATION
