@@ -26,6 +26,10 @@ void load_model(model_t* model, const char* path) {
     uint32_t* indicies = NULL;
     size_t indicies_n = 0;
 
+    model->root = NULL;
+    submodel_t* prev_submodel = NULL;
+    submodel_t** submodel = &model->root;
+
     vec3 buffer;
     while (getline(&line, &len, file) != EOF) {
         if (strncmp(line, "v ", 2) == 0) {
@@ -48,6 +52,21 @@ void load_model(model_t* model, const char* path) {
             uvs = realloc(uvs, sizeof(vec2) * (uvs_n + 1));
             memcpy(uvs + uvs_n * 2, buffer, sizeof(float) * 2);
             uvs_n += 1;
+
+        } else if (strncmp(line, "o ", 2) == 0) {
+            char name[256];
+            sscanf(line, "o %s", name);
+            printf("Object: %s\n", name);
+
+            if (prev_submodel != NULL)
+                prev_submodel->count = indicies_n - prev_submodel->offset;
+
+            *submodel = malloc(sizeof(submodel_t));
+            (*submodel)->offset = indicies_n;
+            (*submodel)->child = NULL;
+
+            prev_submodel = *submodel;
+            submodel = &(*submodel)->child;
 
         } else if (strncmp(line, "f ", 2) == 0) {
             uint32_t ap, at, an;  // a = vertex, p = position, t = texture, n = normal
@@ -80,6 +99,9 @@ void load_model(model_t* model, const char* path) {
             indicies_n += 3;
         }
     }
+
+    if (prev_submodel != NULL)
+        prev_submodel->count = indicies_n - prev_submodel->offset;
 
     free(line);
     free(positions);
@@ -117,11 +139,19 @@ void load_model(model_t* model, const char* path) {
 
 void draw_model(model_t* model) {
     glBindVertexArray(model->vao);
-    glDrawElements(GL_TRIANGLES, model->count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, model->count, GL_UNSIGNED_INT, (void*)0);
 }
 
 void free_model(model_t* model) {
     glDeleteVertexArrays(1, &model->vao);
     glDeleteBuffers(1, &model->ebo);
     glDeleteBuffers(1, &model->vbo);
+
+    submodel_t *submodel = model->root, *next;
+    while (submodel != NULL) {
+        next = submodel->child;
+
+        free(submodel);
+        submodel = next;
+    }
 }

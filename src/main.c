@@ -77,9 +77,30 @@ int main() {
         glUniformMatrix4fv(normal_loc, 1, GL_FALSE, (float *)normal);
 
         GLint color_loc = glGetUniformLocation(shader.program, "color");
-        glUniform3f(color_loc, 1.0f, 0.0f, 1.0f);
+        // glUniform3f(color_loc, 1.0f, 0.0f, 1.0f);
 
-        draw_model(&object);
+        // Draw model
+        glBindVertexArray(object.vao);
+
+        // clang-format off
+            float colors[] = { 0.5f, 0.0f, 0.0f, 
+                               0.0f, 0.5f, 0.0f,
+                               0.0f, 0.0f, 0.5f };
+        // clang-format on
+
+        int i = 0;
+        submodel_t *submodel = object.root;
+        while (submodel != NULL) {
+            glUniform3fv(color_loc, 1, colors + i++ * 3);
+
+            // mat4x4_translate(model, sin(time_elapsed * i * i), 0.0f, cos(time_elapsed * i * i));
+            mat4x4_identity(model);
+            mat4x4_rotate_Z(model, model, sin(time_elapsed + i * 0.1f));
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
+
+            glDrawElements(GL_TRIANGLES, submodel->count, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * submodel->offset));
+            submodel = submodel->child;
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
