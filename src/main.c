@@ -8,9 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define GL_SILENCE_DEPRECATION
-#define GLFW_INCLUDE_GLCOREARB
-#include <GLFW/glfw3.h>
+#define ENGINE_INCLUDES
+#include "model.h"
 
 GLFWwindow *window;
 
@@ -19,6 +18,9 @@ void deinit();
 
 int main() {
     init();
+
+    model_t object;
+    load_model(&object, "assets/bulb.obj");
 
     char title[16];
 
@@ -48,6 +50,7 @@ int main() {
         glfwPollEvents();
     }
 
+    free_model(&object);
     deinit();
     return EXIT_SUCCESS;
 }
