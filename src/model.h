@@ -2,10 +2,14 @@
 #define MODEL_H
 
 #include "glfw.h"
+#include "linmath.h"
 
 struct _submodel_t {
     GLuint count;
     GLuint offset;
+
+    vec3 bbox_min, bbox_max;
+    GLuint bb_index;
 
     struct _submodel_t* child;
 };
@@ -13,6 +17,8 @@ struct _submodel_t {
 struct _model_t {
     GLuint vao, vbo, ebo;
     GLuint count;
+
+    GLuint bb_vao, bb_vbo, bb_ebo;
 
     struct _submodel_t* root;
 };

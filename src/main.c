@@ -20,8 +20,9 @@ void deinit();
 int main() {
     init();
 
-    shader_t shader;
+    shader_t shader, line_shader;
     load_shader(&shader, "shaders/vertex.glsl", "shaders/fragment.glsl");
+    load_shader(&line_shader, "shaders/line-vertex.glsl", "shaders/line-fragment.glsl");
 
     model_t object;
     load_model(&object, "assets/bulb.obj");
@@ -62,43 +63,60 @@ int main() {
         mat4x4_transpose(temp, model);
         mat4x4_invert(normal, temp);
 
-        glUseProgram(shader.program);
-
-        GLint model_loc = glGetUniformLocation(shader.program, "model");
-        glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
-
-        GLint view_loc = glGetUniformLocation(shader.program, "view");
-        glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float *)view);
-
-        GLint projection_loc = glGetUniformLocation(shader.program, "projection");
-        glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float *)projection);
-
-        GLint normal_loc = glGetUniformLocation(shader.program, "normal");
-        glUniformMatrix4fv(normal_loc, 1, GL_FALSE, (float *)normal);
-
-        GLint color_loc = glGetUniformLocation(shader.program, "color");
-        // glUniform3f(color_loc, 1.0f, 0.0f, 1.0f);
-
-        // Draw model
-        glBindVertexArray(object.vao);
-
-        // clang-format off
-            float colors[] = { 0.5f, 0.0f, 0.0f, 
-                               0.0f, 0.5f, 0.0f,
-                               0.0f, 0.0f, 0.5f };
-        // clang-format on
-
         int i = 0;
         submodel_t *submodel = object.root;
         while (submodel != NULL) {
-            glUniform3fv(color_loc, 1, colors + i++ * 3);
+            glUseProgram(shader.program);
 
-            // mat4x4_translate(model, sin(time_elapsed * i * i), 0.0f, cos(time_elapsed * i * i));
-            mat4x4_identity(model);
-            mat4x4_rotate_Z(model, model, sin(time_elapsed + i * 0.1f));
+            GLint model_loc = glGetUniformLocation(shader.program, "model");
             glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
 
+            GLint view_loc = glGetUniformLocation(shader.program, "view");
+            glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float *)view);
+
+            GLint projection_loc = glGetUniformLocation(shader.program, "projection");
+            glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float *)projection);
+
+            GLint normal_loc = glGetUniformLocation(shader.program, "normal");
+            glUniformMatrix4fv(normal_loc, 1, GL_FALSE, (float *)normal);
+
+            GLint color_loc = glGetUniformLocation(shader.program, "color");
+            glUniform3f(color_loc, 1.0f, 1.0f, 1.0f);
+
+            // Draw model
+
+            // clang-format off
+            float colors[] = { 0.5f, 0.0f, 0.0f, 
+                               0.0f, 0.5f, 0.0f,
+                               0.0f, 0.0f, 0.5f };
+            // clang-format on
+
+            glUniform3fv(color_loc, 1, colors + i++ * 3);
+
+            mat4x4_identity(model);
+            mat4x4_translate(model, 0, sin(time_elapsed * i) * 0.1f, 0);
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
+
+            glBindVertexArray(object.vao);
             glDrawElements(GL_TRIANGLES, submodel->count, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * submodel->offset));
+
+            glUseProgram(line_shader.program);
+
+            model_loc = glGetUniformLocation(line_shader.program, "model");
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
+
+            view_loc = glGetUniformLocation(line_shader.program, "view");
+            glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float *)view);
+
+            projection_loc = glGetUniformLocation(line_shader.program, "projection");
+            glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float *)projection);
+
+            color_loc = glGetUniformLocation(line_shader.program, "color");
+            glUniform3f(color_loc, 1.0f, 1.0f, 1.0f);
+
+            glBindVertexArray(object.bb_vao);
+            glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * submodel->bb_index * 24));
+
             submodel = submodel->child;
         }
 
