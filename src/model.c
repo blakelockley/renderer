@@ -29,15 +29,15 @@ submodel_t** finalise_submodel(submodel_t* submodel) {
     float* max = submodel->bbox_max;
 
     float points[8][3] = {
-        {min[0], min[1], min[2]},
-        {max[0], min[1], min[2]},
-        {max[0], max[1], min[2]},
-        {min[0], max[1], min[2]},
-
         {min[0], min[1], max[2]},
         {max[0], min[1], max[2]},
         {max[0], max[1], max[2]},
         {min[0], max[1], max[2]},
+
+        {min[0], min[1], min[2]},
+        {max[0], min[1], min[2]},
+        {max[0], max[1], min[2]},
+        {min[0], max[1], min[2]},
     };
 
     int n = bb_vertices_n;
@@ -55,6 +55,15 @@ submodel_t** finalise_submodel(submodel_t* submodel) {
 
     bb_vertices_n += 8;
     bb_indices_n += 24;
+
+    vec3_add(submodel->bbox_mid, submodel->bbox_min, submodel->bbox_max);
+    vec3_scale(submodel->bbox_mid, submodel->bbox_mid, 0.5f);
+
+    bb_vertices = realloc(bb_vertices, sizeof(float) * 3 * (bb_vertices_n + 1));
+    bb_indices = realloc(bb_indices, sizeof(uint32_t) * (bb_indices_n + 1));
+
+    memcpy(bb_vertices + bb_vertices_n * 3, submodel->bbox_mid, sizeof(submodel->bbox_mid));
+    bb_indices[bb_indices_n++] = bb_vertices_n++;
 
     return &(submodel->child);
 }

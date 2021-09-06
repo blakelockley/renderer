@@ -8,7 +8,7 @@ struct _submodel_t {
     GLuint count;
     GLuint offset;
 
-    vec3 bbox_min, bbox_max;
+    vec3 bbox_min, bbox_max, bbox_mid;
     GLuint bb_index;
 
     struct _submodel_t* child;

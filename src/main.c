@@ -115,7 +115,13 @@ int main() {
             glUniform3f(color_loc, 1.0f, 1.0f, 1.0f);
 
             glBindVertexArray(object.bb_vao);
-            glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * submodel->bb_index * 24));
+
+            uint32_t offset = submodel->bb_index * 25;
+            glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * offset));
+
+            glDisable(GL_DEPTH_TEST);
+            glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, (void *)(sizeof(u_int32_t) * (offset + 24)));
+            glEnable(GL_DEPTH_TEST);
 
             submodel = submodel->child;
         }
@@ -169,6 +175,7 @@ void init() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glPointSize(8.0f);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
