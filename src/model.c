@@ -245,6 +245,10 @@ void free_model(model_t* model) {
     glDeleteBuffers(1, &model->ebo);
     glDeleteBuffers(1, &model->vbo);
 
+    glDeleteVertexArrays(1, &model->bb_vao);
+    glDeleteBuffers(1, &model->bb_ebo);
+    glDeleteBuffers(1, &model->bb_vbo);
+
     submodel_t *submodel = model->root, *next;
     while (submodel != NULL) {
         next = submodel->child;
