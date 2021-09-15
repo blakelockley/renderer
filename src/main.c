@@ -94,7 +94,7 @@ int main() {
             glUniform3fv(color_loc, 1, colors + i++ * 3);
 
             mat4x4_identity(model);
-            mat4x4_translate(model, 0, sin(time_elapsed * i) * 0.1f, 0);
+            mat4x4_translate(model, model, 0, sin(time_elapsed * i) * 0.1f, 0);
             glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float *)model);
 
             glBindVertexArray(object.vao);
