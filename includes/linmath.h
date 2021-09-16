@@ -233,14 +233,14 @@ static inline float vec4_dot(const vec4 a, const vec4 b) {
 // mat4x4
 
 static inline void mat4x4_zero(mat4x4 M) {
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
             M[i][j] = 0.0f;
 }
 
 static inline void mat4x4_identity(mat4x4 M) {
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
             M[i][j] = i == j ? 1.0f : 0.0f;
 }
 
@@ -249,44 +249,44 @@ static inline void mat4x4_copy(mat4x4 M, const mat4x4 m) {
 }
 
 static inline void mat4x4_col(vec4 r, const mat4x4 m, int i) {
-    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 4; ++j)
         r[j] = m[i][j];
 }
 
 static inline void mat4x4_row(vec4 r, const mat4x4 m, int j) {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
         r[i] = m[i][j];
 }
 
 static inline void mat4x4_transpose(mat4x4 M, const mat4x4 m) {
     mat4x4 tmp;
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
             tmp[i][j] = m[j][i];
     mat4x4_copy(M, tmp);
 }
 
 static inline void mat4x4_add(mat4x4 M, const mat4x4 a, const mat4x4 b) {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
         vec4_add(M[i], a[i], b[i]);
 }
 
 static inline void mat4x4_sub(mat4x4 M, const mat4x4 a, const mat4x4 b) {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
         vec4_sub(M[i], a[i], b[i]);
 }
 
 static inline void mat4x4_mul_scalar(mat4x4 M, const mat4x4 a, float s) {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; ++i)
         vec4_scale(M[i], a[i], s);
 }
 
 static inline void mat4x4_mul(mat4x4 M, const mat4x4 a, const mat4x4 b) {
     mat4x4 tmp;
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < 4; ++j) {
         vec4 row;
         mat4x4_row(row, a, j);
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; ++i)
             tmp[i][j] = vec4_dot(row, b[i]);
     }
     mat4x4_copy(M, tmp);
@@ -294,7 +294,7 @@ static inline void mat4x4_mul(mat4x4 M, const mat4x4 a, const mat4x4 b) {
 
 static inline void mat4x4_mul_vec4(vec4 r, const mat4x4 m, const vec4 v) {
     vec4 tmp;
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < 4; ++j) {
         vec4 row;
         mat4x4_row(row, m, j);
         tmp[j] = vec4_dot(row, v);
@@ -302,7 +302,7 @@ static inline void mat4x4_mul_vec4(vec4 r, const mat4x4 m, const vec4 v) {
     vec4_copy(r, tmp);
 }
 
-static inline int mat4x4_invert(mat4x4 M, const mat4x4 m) {
+static inline void mat4x4_invert(mat4x4 M, const mat4x4 m) {
     mat4x4 tmp;
 
     float s[6], c[6];
@@ -406,8 +406,8 @@ static inline void mat4x4_rotation_z(mat4x4 M, float angle) {
 
     mat4x4_identity(M);
     M[0][0] = +c;
-    M[0][1] = -s;
-    M[1][0] = +s;
+    M[0][1] = +s;
+    M[1][0] = -s;
     M[1][1] = +c;
 }
 
@@ -434,14 +434,14 @@ static inline void mat4x4_ortho(mat4x4 M, float l, float r, float b, float t, fl
 }
 
 static inline void mat4x4_perspective(mat4x4 M, float fov, float aspect, float n, float f) {
-    float const a = 1.0f / tanf((fov / 2.0f) * (M_PI / 180.0f));
+    float a = 1.0f / tanf(fov / 2.0f);
 
     mat4x4_zero(M);
     M[0][0] = a / aspect;
     M[1][1] = a;
-    M[2][2] = -(f + n) / (f - n);
+    M[2][2] = -((f + n) / (f - n));
     M[2][3] = -1.0f;
-    M[3][2] = -2.0f * f * n / (f - n);
+    M[3][2] = -((2.0f * f * n) / (f - n));
 }
 
 static inline void mat4x4_look_at(mat4x4 M, const vec3 eye, const vec3 center, const vec3 up) {
